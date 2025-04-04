@@ -1,9 +1,6 @@
-from data_provider.data_factory import data_provider
-from exp.exp_basic import Exp_Basic
-from models import Informer, Autoformer, Transformer, DLinear, Linear, NLinear, PatchTST, SegRNN, CycleNet, \
-    LDLinear, SparseTSF, RLinear, RMLP, CycleiTransformer
-from utils.tools import EarlyStopping, adjust_learning_rate, visual, test_params_flop
-from utils.metrics import metric
+import os
+import time
+import warnings
 
 import numpy as np
 import torch
@@ -11,12 +8,11 @@ import torch.nn as nn
 from torch import optim
 from torch.optim import lr_scheduler
 
-import os
-import time
-
-import warnings
-import matplotlib.pyplot as plt
-import numpy as np
+from data_provider.data_factory import data_provider
+from exp.build_model import build_model
+from exp.exp_basic import Exp_Basic
+from utils.metrics import metric
+from utils.tools import EarlyStopping, adjust_learning_rate, visual, test_params_flop
 
 warnings.filterwarnings('ignore')
 
@@ -26,23 +22,8 @@ class Exp_Main(Exp_Basic):
         super(Exp_Main, self).__init__(args)
 
     def _build_model(self):
-        model_dict = {
-            'Autoformer': Autoformer,
-            'Transformer': Transformer,
-            'Informer': Informer,
-            'DLinear': DLinear,
-            'NLinear': NLinear,
-            'Linear': Linear,
-            'PatchTST': PatchTST,
-            'SegRNN': SegRNN,
-            'CycleNet': CycleNet,
-            'LDLinear': LDLinear,
-            'SparseTSF': SparseTSF,
-            'RLinear': RLinear,
-            'RMLP': RMLP,
-            'CycleiTransformer': CycleiTransformer
-        }
-        model = model_dict[self.args.model].Model(self.args).float()
+
+        model = build_model(self.args)
 
         if self.args.use_multi_gpu and self.args.use_gpu:
             model = nn.DataParallel(model, device_ids=self.args.device_ids)
