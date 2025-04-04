@@ -6,3 +6,9 @@ test_results/
 results/
 logs/
 .DS_Store
+CycleNet-out
+CycleNet-in-x
+CycleNet-in-cycle_index
+/checkpoints
+checkpoints/Electricity_96_96_CycleNet_custom_ftM_sl96_pl96_cycle168_linear_seed2024/checkpoint.pth
+/checkpoints
