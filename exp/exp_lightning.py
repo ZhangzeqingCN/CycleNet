@@ -68,9 +68,6 @@ class Exp_Lightning:
         self.args = args
         self.wrapper = WrapperModule(args)
         setting = get_setting(args)
-        version = setting
-        if args.version is not None:
-            version = args.version
         self.trainer = Trainer(
             devices=-1,
             max_epochs=args.train_epochs, num_sanity_val_steps=0, precision=32,
@@ -78,7 +75,6 @@ class Exp_Lightning:
                 EarlyStopping(
                     patience=args.patience,
                     monitor="vali_loss",
-                    # min_delta=0.001,
                     min_delta=0,
                     verbose=False,
                 ),
@@ -88,8 +84,8 @@ class Exp_Lightning:
                 ),
             ],
             logger=[
-                CSVLogger("logs", name=setting),
-                WandbLogger(project="time-series", version=version, log_model=False),
+                # CSVLogger("logs", name=setting),
+                WandbLogger(project="time-series", version=setting, log_model=False, offline=True),
             ]
         )
 

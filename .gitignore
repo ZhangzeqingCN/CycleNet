@@ -1,6 +1,8 @@
 *.pyc
 *.pth
 *.txt
+*.log
+*.ipynb
 
 .idea
 .DS_Store
@@ -12,3 +14,5 @@ logs
 checkpoints
 lightning_logs
 wandb
+
+__pycache__
