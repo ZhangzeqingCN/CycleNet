@@ -74,4 +74,16 @@ class Args:
     use_multi_gpu: bool = False
     devices: str = "01"
     test_flop: bool = False
+    # MFRS
     dn_layers: int = 3
+    rs_len: int = 96
+    rs_type: str = "sin"
+    Q: int = 4
+    manual_pbp: int = 8760
+    manual_hbp: str = "1 2"
+    use_dc: int = 1
+    use_embed: int = 1
+    use_align: int = 0
+    L: int = 1000
+    # MLP MFRS
+    period_list: list = (24, 12, 168, 84)

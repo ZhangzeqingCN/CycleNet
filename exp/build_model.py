@@ -17,7 +17,7 @@ from models import (
     iTransformer,
     CycleNetReferSeries,
     iTransformerDyT,
-    DiPELinear,
+    DiPELinear, MFRS,
 )
 
 
@@ -41,6 +41,7 @@ def build_model(args: Args):
         "iTransformerDyT": iTransformerDyT,
         "CycleNetReferSeries": CycleNetReferSeries,
         "DiPELinear": DiPELinear,
+        "MFRS": MFRS,
     }
     model = model_dict[args.model].Model(args).float()
     return model

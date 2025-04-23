@@ -89,7 +89,9 @@ class TemporalEmbedding(nn.Module):
 
         return hour_x + weekday_x + day_x + month_x + minute_x
 
+
 freq_map = {'h': 4, 't': 5, 's': 6, 'm': 1, 'a': 1, 'w': 2, 'd': 3, 'b': 3}
+
 
 class TimeFeatureEmbedding(nn.Module):
     def __init__(self, d_model, embed_type='timeF', freq='h'):
@@ -132,6 +134,7 @@ class DataEmbedding_wo_pos(nn.Module):
         x = self.value_embedding(x) + self.temporal_embedding(x_mark)
         return self.dropout(x)
 
+
 class DataEmbedding_wo_pos_temp(nn.Module):
     def __init__(self, c_in, d_model, embed_type='fixed', freq='h', dropout=0.1):
         super(DataEmbedding_wo_pos_temp, self).__init__()
@@ -146,6 +149,7 @@ class DataEmbedding_wo_pos_temp(nn.Module):
     def forward(self, x, x_mark):
         x = self.value_embedding(x)
         return self.dropout(x)
+
 
 class DataEmbedding_wo_temp(nn.Module):
     def __init__(self, c_in, d_model, embed_type='fixed', freq='h', dropout=0.1):
@@ -178,3 +182,41 @@ class DataEmbedding_inverted(nn.Module):
             x = self.value_embedding(torch.cat([x, x_mark.permute(0, 2, 1)], 1))
         # x: [Batch Variate d_model]
         return self.dropout(x)
+
+
+def pos_encoding(len, c_in):
+    W_pos = torch.empty((len, c_in))
+    nn.init.uniform_(W_pos, -0.02, 0.02)
+
+    return nn.Parameter(W_pos, requires_grad=True)
+
+
+class MFRSEmbedding(nn.Module):
+    def __init__(self, use_dc, use_embed, c_in, seq_len, rs_len, d_model, dropout=0.1):
+        super(MFRSEmbedding, self).__init__()
+        self.use_dc = use_dc
+        self.use_embed = use_embed
+        self.c_in = c_in
+        self.seq_len = seq_len
+        self.rs_len = rs_len
+
+        self.position = pos_encoding(seq_len, c_in)
+
+        self.value_embedding = nn.Linear(seq_len, d_model)
+        self.xr_embedding = nn.Linear(rs_len, d_model)
+        self.dropout = nn.Dropout(p=dropout)
+
+    def forward(self, enc_x, refer_x):
+        if self.use_dc:
+            enc_x += self.position
+
+        enc_x = enc_x.permute(0, 2, 1)
+        enc_x = self.dropout(self.value_embedding(enc_x))
+
+        refer_x = refer_x.permute(0, 2, 1)
+        if self.use_embed:
+            refer_x = self.dropout(self.xr_embedding(refer_x))
+        else:
+            refer_x = self.dropout(self.value_embedding(refer_x))
+
+        return enc_x, refer_x

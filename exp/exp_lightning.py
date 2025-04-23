@@ -24,13 +24,15 @@ class WrapperModule(LightningModule):
         return optim.Adam(self.model.parameters(), lr=self.args.learning_rate)
 
     def base_step(self, batch, i) -> STEP_OUTPUT:
-        batch_x, batch_y, batch_x_mark, batch_y_mark, batch_cycle = batch
+        batch_x, batch_y, batch_x_mark, batch_y_mark, batch_cycle, batch_rs = batch
         batch_x = batch_x.float()
         batch_y = batch_y.float()
         batch_x_mark = batch_x_mark.float()
         batch_y_mark = batch_y_mark.float()
         dec_inp = torch.zeros_like(batch_y[:, -self.args.pred_len:, :]).float()
-        if any(substr in self.args.model for substr in {'Cycle'}):
+        if any(substr in self.args.model for substr in {'MFRS'}):
+            outputs = self.model(batch_x, batch_rs.float())
+        elif any(substr in self.args.model for substr in {'Cycle'}):
             outputs = self.model(batch_x, batch_cycle)
         elif any(substr in self.args.model for substr in {'Linear', 'MLP', 'SegRNN', 'TST', 'SparseTSF'}):
             outputs = self.model(batch_x)
@@ -65,11 +67,15 @@ class WrapperModule(LightningModule):
 class Exp_Lightning:
 
     def __init__(self, args: Args):
+        if torch.cuda.is_available():
+            devices = -1
+        else:
+            devices = 1
         self.args = args
         self.wrapper = WrapperModule(args)
         setting = get_setting(args)
         self.trainer = Trainer(
-            devices=-1,
+            devices=devices,
             max_epochs=args.train_epochs, num_sanity_val_steps=0, precision=32,
             callbacks=[
                 EarlyStopping(
